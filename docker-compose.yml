@@ -1,10 +1,8 @@
 version: '3.8'
 
 volumes:
-  db_storage_1:
-  n8n_storage_1:
-  # db_storage:
-  # n8n_storage:
+  db_storage:
+  n8n_storage:
 
 services:
   postgres:
@@ -15,10 +13,8 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
-      - db_storage_1:/var/lib/postgresql/data
-      # create database schema vector 
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-      #- ./init-data.sh:/docker-entrypoint-initdb.d/init-data.sh
+      - db_storage:/var/lib/postgresql/data
+      - ./init-vector-database.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -h localhost -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
       interval: 5s
@@ -55,7 +51,7 @@ services:
     links:
       - postgres
     volumes:
-      - n8n_storage_1:/home/node/.n8n
+      - n8n_storage:/home/node/.n8n
     depends_on:
       postgres:
         condition: service_healthy

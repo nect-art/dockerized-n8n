@@ -1,5 +1,3 @@
---DROP DATABASE IF EXISTS ] "vectordb-n8n";
- 
 CREATE DATABASE "vectordb-n8n";
 
 GRANT ALL PRIVILEGES ON DATABASE "vectordb-n8n" TO n8n;
