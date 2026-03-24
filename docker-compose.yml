@@ -6,7 +6,7 @@ volumes:
 
 services:
   postgres:
-    image: postgres:16
+    image: pgvector/pgvector:pg16
     restart: always
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
@@ -14,7 +14,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - db_storage:/var/lib/postgresql/data
-      #- ./init-data.sh:/docker-entrypoint-initdb.d/init-data.sh
+      - ./init-vector-database.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -h localhost -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
       interval: 5s
@@ -36,9 +36,16 @@ services:
       #- N8N_PROTOCOL=https
       - DOMAIN_NAME=${DOMAIN_NAME}
       - SUBDOMAIN=n8n
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - N8N_EXPRESS_DEVICE_MODE_TRUST_PROXY=true
+      - N8N_PROXY_HOPS=1
       - WEBHOOK_URL=https://n8n.${DOMAIN_NAME}/
       - GENERIC_TIMEZONE=Europe/Paris
       - TZ=Europe/Paris
+      - N8N_BLOCK_XML_EXTERNAL_ENTITIES=true
+      - N8N_METRICS=true
+      - N8N_LICENSE_AUTO_RENEW=true
     ports:
       - 5678:5678
     links:
@@ -52,4 +59,4 @@ services:
   tunnel:
     image: cloudflare/cloudflared
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
-    restart: unless-stopped
+    restart: always
