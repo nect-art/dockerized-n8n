@@ -56,6 +56,24 @@ services:
       postgres:
         condition: service_healthy
 
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    restart: always
+    environment:
+      # Tailwind's browser build compiles in-page, so a render can outlast the 30s default
+      - API_TIMEOUT=60s
+      # Deny everything, then permit only what the invoice template loads: the uploaded
+      # document itself, and the Tailwind CDN. Blocks Chromium from reaching postgres,
+      # vault, the n8n API, cloud metadata, and Google's telemetry hosts.
+      # Matched at the HTTPS CONNECT layer, where the value is 'https://host:443' with no
+      # path — hence the (:443)? branch. A host-only pattern ending in / never matches.
+      - 'CHROMIUM_ALLOW_LIST=^file:///tmp/.*|^https://cdn\.jsdelivr\.net(:443)?(/.*)?$$'
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -fsS http://localhost:3000/health || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   tunnel:
     image: cloudflare/cloudflared
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
